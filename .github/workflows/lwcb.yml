@@ -1,0 +1,41 @@
+name: lwcb
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build and run tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install deps
+      run: sudo apt-get install -y libelf-dev
+    - name: Build
+      run: cd lwcb && cargo build --verbose
+    - name: Run tests for bpfir
+      run: cd lwcb/bpfir && cargo test
+    - name: Run tests for blang
+      run: cd lwcb/blang && cargo test --tests
+    - name: Run tests for lwcb
+      run: cd lwcb && cargo test
+
+  rustfmt:
+    name: Check code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          components: rustfmt
+          override: true
+      - run: cd lwcb && cargo fmt --all --check
